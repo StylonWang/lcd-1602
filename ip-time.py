@@ -35,6 +35,8 @@ while True:
 	#f = os.popen("sh getip.sh")
 	#str = f.read(32)
 
-	lcd.lcd_display_string("" + getip.get_ip(), 2)
+	ip = getip.get_ip()
+	ip = ip + (" "*(16-len(ip)))
+	lcd.lcd_display_string(ip, 2)
 
 	time.sleep(5)
