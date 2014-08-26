@@ -14,6 +14,9 @@
 
 #include "lcddriver.h"
 
+#define LCD_WIDTH (16)
+#define LCD_HEIGHT (2)
+
 static void i2c_write_cmd(int fd, uint8_t data)
 {
     int ret = i2c_smbus_write_byte(fd, data);
@@ -112,8 +115,11 @@ void lcd_display_string(int fd, char *str, int line)
         lcd_write(fd, 0xD4, 0);
     }
 
-    for(i=0; i<strlen(str); ++i) {
-        lcd_write(fd, str[i], Rs);
+    for(i=0; i<LCD_WIDTH /*strlen(str)*/; ++i) {
+        if(i<strlen(str))
+            lcd_write(fd, str[i], Rs);
+        else
+            lcd_write(fd, ' ', Rs); // fill with blank
     }
 }
 
