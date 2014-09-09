@@ -12,8 +12,11 @@
 #include    <linux/i2c.h>
 #include    <linux/delay.h>
 
+#include    "lcdio.h"
+
 #define DRV_VERSION "2014090901"
 
+//TODO: how to remove these constants?
 #define LCD_WIDTH (16)
 #define LCD_HEIGHT (2)
 
@@ -23,11 +26,6 @@ static void i2c_write_cmd(const struct i2c_client *client, uint8_t data)
     if(ret<0) {
         printk("i2c_smbus_write_byte failed: %d\n", ret);
     }
-}
-
-static inline void mysleep(int mili_second)
-{
-    msleep(mili_second);
 }
 
 // command
@@ -80,9 +78,11 @@ static inline void mysleep(int mili_second)
 static void lcd_strobe(const struct i2c_client *client, uint8_t data)
 {
       i2c_write_cmd(client, data | En | LCD_BACKLIGHT);
-      mysleep(1); //.0005);
+      //mysleep(1); //.0005);
+      udelay(500); //TODO: check spec and make sure this delay is long enough
       i2c_write_cmd(client, ((data & ~En) | LCD_BACKLIGHT));
-      mysleep(1); //.0001);
+      //mysleep(1); //.0001);
+      udelay(100); //TODO: check spec and make sure this delay is long enough
 }
 
 static void lcd_write_four_bits(const struct i2c_client *client, uint8_t data)
@@ -140,10 +140,10 @@ static void lcd_init(const struct i2c_client *client)
     lcd_write(client, LCD_DISPLAYCONTROL | LCD_DISPLAYON, 0);
     lcd_write(client, LCD_CLEARDISPLAY, 0);
     lcd_write(client, LCD_ENTRYMODESET | LCD_ENTRYLEFT, 0);
-    mysleep(200);
+    msleep(200); //TODO: check spec and make sure this delay is long enough
 }
 
-static struct i2c_client *lcd_device;
+static struct i2c_client *lcd_device = NULL;
 static const struct i2c_board_info lcd_info = {
     I2C_BOARD_INFO("lcd1602", 0x27)
 };
@@ -154,13 +154,14 @@ static int __init mod_init(void)
 
     printk("LCD 1602 driver %s loaded\n", DRV_VERSION);
 
+    //TODO: remove assumption that LCD1602 is always on i2c bus 2
     adap = i2c_get_adapter(2);
     if(!adap) {
         printk("unable to get adapter %d\n", 2);
         return -1;
     }
 
-    //TODO: use i2c_new_probed_device
+    //TODO: use i2c_new_probed_device, since LCD1602 can live on other addresses.
     lcd_device = i2c_new_device(adap, &lcd_info);
     if(lcd_device) {
         printk("lcd installed, client=%p\n", lcd_device);
@@ -175,13 +176,16 @@ static int __init mod_init(void)
     lcd_clear(lcd_device);
     lcd_display_string(lcd_device, "Hello driver!", 1);
 
+    printk("%s sleep count %d\n", __func__, sleep_count);
+
     return 0;
 }
 
 static void __exit mod_exit(void)
 {
-    if(lcd_device) i2c_unregister_device(lcd_device);
+    if(lcd_device) lcd_clear(lcd_device);
 
+    if(lcd_device) i2c_unregister_device(lcd_device);
     printk("LCD 1602 driver %s removed\n", DRV_VERSION);
 }
 
