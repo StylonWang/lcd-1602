@@ -9,6 +9,9 @@ CROSS_COMPILE=arm-linux-gnueabihf-
 KERNELDIR=/home/stylon/bpi/bananapi-bsp/build/sun7i_defconfig-linux
 MAKE_OPT=ARCH=arm
 
+# for make install
+SCP_DEST=bananapi@192.168.0.108:/home/bananapi/.
+
 obj-m := lcd1602.o
 driver-objs := main.o
 lcd1602-objs := lcd-kdriver2.o
@@ -21,3 +24,5 @@ default::
 clean::
 	$(MAKE) -C $(KERNELDIR) SUBDIRS=`pwd` clean
 	
+install:: default
+	scp lcd1602.ko $(SCP_DEST)
