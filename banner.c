@@ -136,7 +136,9 @@ int main(int argc, char **argv)
         //strncpy(tmp_fortune, fortune, 16);
         snprintf(tmp_fortune, sizeof(tmp_fortune), "%s", fortune);
 
+        printf("display fortune: %s\n", fortune);
         lcd_display_string(fd, tmp_fortune, 1);
+        printf("display ip: %s\n", ip);
         lcd_display_string(fd, ip, 2);
         msleep(900); 
 
@@ -147,6 +149,7 @@ int main(int argc, char **argv)
         }
 
         // do scrolling text if unable to fit in one line
+        printf("scroll start: %s\n", fortune);
         for(i=1; i<=strlen(fortune) && !g_quit ; ++i) {
             // shift the string to the left by 1 character
             snprintf(tmp_fortune, sizeof(tmp_fortune), "%s", fortune+i); 
@@ -154,6 +157,7 @@ int main(int argc, char **argv)
             lcd_display_string(fd, tmp_fortune, 1);
             msleep(scroll_delay);
         }
+        printf("scroll end: %s\n", fortune);
 
     }
 
